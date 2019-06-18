@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from probability import Probability
 from questions import Question
 from repositories.answers_repository import AnswersRepository
@@ -21,19 +23,28 @@ class Survey:
             2: 1,
             3: 0
         }
+        self.map_input_to_answer = {
+            1: Answers.TRUE,
+            2: Answers.FALSE,
+            3: Answers.UNKNOWN
+        }
 
     def start(self):
         self.calculate_probability()
 
-        for question in self.questions_repository.get_all():
+        questions = self.questions_repository.get_all()
+        for question in questions:
 
             self.show_question(question)
             self.show_probability()
             self.show_answers()
 
-            user_answer = self.get_user_answer()
+            user_input = self.get_user_input()
 
-            self.update_probability(question, user_answer)
+            self.update_user_question_in_answer(question, user_input)
+            self.update_probability(question, user_input)
+
+        self.save_all_user_answers(questions)
 
         self.show_results()
         # TODO Restart mechanism
@@ -44,22 +55,37 @@ class Survey:
         else:
             print('Unfortunately you can not become panelist..')
 
-    def update_probability(self, question:Question, user_answer: int):
-        self.probability_service.probability_samples[question.slug] = user_answer
+    def update_probability(self, question: Question, user_input: int):
+        probability = self.map_input_to_probability[user_input]
+        self.probability_service.probability_samples[question.slug] = probability
+
+    def update_user_question_in_answer(self, question: Question, user_input: int):
+        question.user_answer = self.map_input_to_answer[user_input]
 
     def calculate_probability(self):
         self.probability_service.calculate_for_many_samples(
             self.answers_repository.get_all(), self.correct_answer
         )
 
-    def get_user_answer(self):
+    def save_all_user_answers(self, questions: Iterable[Question]):
+        self.answers_repository.save(
+            {
+                question.slug: question.user_answer.value
+                for question
+                in questions
+            }
+        )
+
+    def get_user_input(self):
         try:
-            input_ = input('Press 1/2/3 \n')
-            return self.map_input_to_probability[
-                int(input_)
-            ]
-        except(ValueError, KeyError):
-            self.get_user_answer()
+            input_ = int(
+                input('Press 1/2/3 \n')
+            )
+            if input_ not in [1, 2, 3]:
+                raise ValueError
+            return input_
+        except ValueError:
+            return self.get_user_input()
 
     def show_probability(self):
         print(

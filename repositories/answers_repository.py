@@ -23,6 +23,8 @@ class CSVAnswersRepository(AnswersRepository, CSVRepositoryBase):
             reader = DictReader(csv_file)
 
             for row in reader:
+                # Answers uses dictionary instead of objects for performance purposes
+                # TODO Consider moving from dict to Answer model.
                 yield row
 
     def save(self, answers: Dict):

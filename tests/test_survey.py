@@ -29,15 +29,18 @@ def test_show_answers(stdout_mock, survey):
 
 
 @mock.patch('survey.Survey.show_results')
+@mock.patch('survey.Survey.save_all_user_answers')
+@mock.patch('survey.Survey.update_user_question_in_answer')
 @mock.patch('survey.Survey.update_probability')
-@mock.patch('survey.Survey.get_user_answer')
+@mock.patch('survey.Survey.get_user_input')
 @mock.patch('survey.Survey.show_answers')
 @mock.patch('survey.Survey.show_probability')
 @mock.patch('survey.Survey.show_question')
 @mock.patch('survey.Survey.calculate_probability')
-def test_survey_will_ask_questions(
+def test_survey_flow(
         calc_prob_moc, show_question, show_probability, show_answers,
-        get_user_answer, update_probability, show_results, survey):
+        get_user_input, update_probability, update_question, show_results,
+        save_all_user_answers, survey):
 
     survey.start()
 
@@ -45,15 +48,17 @@ def test_survey_will_ask_questions(
     show_question.assert_called_once()
     show_probability.assert_called_once()
     show_answers.assert_called_once()
-    get_user_answer.assert_called_once()
+    get_user_input.assert_called_once()
     update_probability.assert_called_once()
     show_results.assert_called_once()
+    update_question.assert_called_once()
+    save_all_user_answers.assert_called_once()
 
 
 @pytest.mark.skip('No time for now for fixing this test. Do it later.')
 @mock.patch('builtins.input', return_value=1)
 def test_user_input_will_be_mapped_to_probability(survey):
-    result = survey.get_user_answer()
+    result = survey.get_user_input()
 
     assert result == 0
 
@@ -62,7 +67,7 @@ def test_update_probability_will_update_probability_service_state(survey):
 
     survey.update_probability(Question('new_q', 'what is love', 'F'), 1)
 
-    assert survey.probability_service.probability_samples['new_q'] == 1
+    assert survey.probability_service.probability_samples['new_q'] == 0
 
 
 def test_calculate_probability_will_get_all_answers(survey):
