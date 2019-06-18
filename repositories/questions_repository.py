@@ -20,5 +20,4 @@ class CSVQuestionsRepository(QuestionsRepository, CSVRepositoryBase):
             reader = DictReader(csv_file)
 
             for row in reader:
-                print(row)
                 yield Question(**row)

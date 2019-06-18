@@ -1,0 +1,6 @@
+slug,content,expected_answer
+non resident,Do you live outside of UK?,F
+underaged,Are you underaged?,F
+unemployed,Are you unemployed?,F
+imprisoned,Have you ever been in prison?,F
+previous_survey,Have you previously participated in an online survey?,F
