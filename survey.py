@@ -45,7 +45,7 @@ class Survey:
             print('Unfortunately you can not become panelist..')
 
     def update_probability(self, question:Question, user_answer: int):
-        self.probability_service.total_probability[question.slug] = user_answer
+        self.probability_service.probability_samples[question.slug] = user_answer
 
     def calculate_probability(self):
         self.probability_service.calculate_for_many_samples(

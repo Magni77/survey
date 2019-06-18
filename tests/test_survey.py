@@ -8,7 +8,7 @@ from survey import Survey
 
 question_repository = mock.Mock(get_all=lambda: [Question('test', 'test', 'F')])
 answers_repository = mock.Mock()
-probability_service = mock.Mock(total_probability={})
+probability_service = mock.Mock(probability_samples={})
 
 
 @pytest.fixture()
@@ -62,7 +62,7 @@ def test_update_probability_will_update_probability_service_state(survey):
 
     survey.update_probability(Question('new_q', 'what is love', 'F'), 1)
 
-    assert survey.probability_service.total_probability['new_q'] == 1
+    assert survey.probability_service.probability_samples['new_q'] == 1
 
 
 def test_calculate_probability_will_get_all_answers(survey):

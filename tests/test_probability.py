@@ -41,6 +41,6 @@ def test_changing_sample_value_will_change_total_probability():
 
     assert results == 0.25
 
-    probability_service.total_probability[1] = 1
+    probability_service.probability_samples[1] = 1
 
     assert probability_service.total == 0.5

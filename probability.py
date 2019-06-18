@@ -32,7 +32,7 @@ class Probability:
     """
 
     def __init__(self):
-        self.total_probability = {}
+        self.probability_samples = {}
 
     @staticmethod
     def calculate_for_key(data: Collection, key: Any):
@@ -45,12 +45,12 @@ class Probability:
     def calculate_for_many_samples(self, data: Iterable[Dict], key: Any):
         counter_data = KeyCounter(data)
         for sample, counted_values in counter_data.items():
-            self.total_probability[sample] = self.calculate_for_key(counted_values, key)
+            self.probability_samples[sample] = self.calculate_for_key(counted_values, key)
 
         return self.total
 
     @property
     def total(self):
-        if self.total_probability:
-            return prod(self.total_probability.values())
+        if self.probability_samples:
+            return prod(self.probability_samples.values())
         return 0
