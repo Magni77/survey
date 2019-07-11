@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from csv import DictReader
 from typing import Iterable
 
-from questions import Question
+from entities.questions import Question
 from repositories.csv_base import CSVRepositoryBase
 
 

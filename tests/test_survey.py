@@ -3,12 +3,15 @@ from unittest import mock
 
 import pytest
 
-from questions import Question
+from entities.questions import Question
+from probability import Probability
+from settings import Answers
 from survey import Survey
 
-question_repository = mock.Mock(get_all=lambda: [Question('test', 'test', 'F')])
+question_mock = Question('test', 'test', 'F')
+question_repository = mock.Mock(get_all=lambda: [question_mock])
 answers_repository = mock.Mock()
-probability_service = mock.Mock(probability_samples={})
+probability_service = Probability()
 
 
 @pytest.fixture()
@@ -30,29 +33,59 @@ def test_show_answers(stdout_mock, survey):
 
 @mock.patch('survey.Survey.show_results')
 @mock.patch('survey.Survey.save_all_user_answers')
-@mock.patch('survey.Survey.update_user_question_in_answer')
-@mock.patch('survey.Survey.update_probability')
-@mock.patch('survey.Survey.get_user_input')
-@mock.patch('survey.Survey.show_answers')
-@mock.patch('survey.Survey.show_probability')
-@mock.patch('survey.Survey.show_question')
+@mock.patch('survey.Survey.serve_question')
 @mock.patch('survey.Survey.calculate_probability')
-def test_survey_flow(
-        calc_prob_moc, show_question, show_probability, show_answers,
-        get_user_input, update_probability, update_question, show_results,
-        save_all_user_answers, survey):
+def test_survey_flow_will_serve_question(
+        calc_prob_moc, serve_question, save_all_user_answers, show_results, survey):
 
     survey.start()
 
     calc_prob_moc.assert_called_once()
-    show_question.assert_called_once()
-    show_probability.assert_called_once()
-    show_answers.assert_called_once()
-    get_user_input.assert_called_once()
-    update_probability.assert_called_once()
-    show_results.assert_called_once()
-    update_question.assert_called_once()
+    serve_question.assert_called_once_with(question_mock)
+
     save_all_user_answers.assert_called_once()
+    show_results.assert_called_once()
+
+
+@mock.patch('survey.Survey.process_user_input')
+@mock.patch('survey.Survey.get_user_input')
+@mock.patch('survey.Survey.ask_question')
+def test_serve_question_will_ask_question_wait_for_answer_and_process_it(
+        ask_question_mock, get_user_input_mock, process_user_input_mock, survey):
+
+    survey.serve_question(question_mock)
+
+    ask_question_mock.assert_called_once_with(question_mock)
+
+    get_user_input_mock.assert_called_once()
+
+    process_user_input_mock.assert_called_once()
+
+
+@mock.patch('survey.Survey.show_question')
+@mock.patch('survey.Survey.show_probability')
+@mock.patch('survey.Survey.show_answers')
+def test_ask_question_will_show_question_probability_and_answers(
+        show_answers_mock, show_probability_mock, show_question_mock, survey):
+    survey.ask_question(question_mock)
+
+    show_answers_mock.assert_called_once()
+
+    show_probability_mock.assert_called_once()
+
+    show_question_mock.assert_called_once_with(question_mock)
+
+
+def test_process_user_input_will_update_answers(survey):
+    survey.process_user_input(1, question_mock)
+
+    assert question_mock.user_answer == Answers.TRUE
+
+
+def test_process_user_input_will_update_probability_service(survey):
+    survey.process_user_input(1, question_mock)
+
+    assert survey.probability_service.probability_samples[question_mock.slug] == 0
 
 
 @pytest.mark.skip('No time for now for fixing this test. Do it later.')
@@ -68,11 +101,3 @@ def test_update_probability_will_update_probability_service_state(survey):
     survey.update_probability(Question('new_q', 'what is love', 'F'), 1)
 
     assert survey.probability_service.probability_samples['new_q'] == 0
-
-
-def test_calculate_probability_will_get_all_answers(survey):
-
-    survey.calculate_probability()
-
-    survey.probability_service.calculate_for_many_samples.assert_called_once()
-    survey.answers_repository.get_all.assert_called_once()

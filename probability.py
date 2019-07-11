@@ -1,9 +1,9 @@
 import operator
-from collections import Counter
+from collections import Counter, defaultdict
 from functools import reduce
 from typing import Collection, Any, Dict, Iterable
 
-from counter import KeyCounter
+from exceptions import InCorrectProbabilityException
 
 
 def prod(iterable):
@@ -34,6 +34,12 @@ class Probability:
     def __init__(self):
         self.probability_samples = {}
 
+    @property
+    def total(self):
+        if self.probability_samples:
+            return prod(self.probability_samples.values())
+        return 0
+
     @staticmethod
     def calculate_for_key(data: Collection, key: Any):
         try:
@@ -43,14 +49,28 @@ class Probability:
             return 0
 
     def calculate_for_many_samples(self, data: Iterable[Dict], key: Any):
-        counter_data = KeyCounter(data)
+        counter_data = self._count_elements_in_iterable_of_dicts(data)
         for sample, counted_values in counter_data.items():
             self.probability_samples[sample] = self.calculate_for_key(counted_values, key)
 
         return self.total
 
-    @property
-    def total(self):
-        if self.probability_samples:
-            return prod(self.probability_samples.values())
-        return 0
+    def update_sample(self, slug: str, probability: int):
+        if not 0 <= probability <= 1:
+            raise InCorrectProbabilityException('Probability should have value between 0 and 1')
+
+        self.probability_samples[slug] = probability
+
+    @staticmethod
+    def _count_elements_in_iterable_of_dicts(data: Iterable[Dict]) -> defaultdict:
+        counter = defaultdict(
+            lambda: defaultdict(
+                lambda: 0
+            )
+        )
+
+        for row in data:
+            for field_name, value in row.items():
+                counter[field_name][value] += 1
+
+        return counter

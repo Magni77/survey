@@ -1,7 +1,7 @@
 from typing import Iterable
 
 from probability import Probability
-from questions import Question
+from entities.questions import Question
 from repositories.answers_repository import AnswersRepository
 from repositories.questions_repository import QuestionsRepository
 
@@ -33,21 +33,29 @@ class Survey:
         self.calculate_probability()
 
         questions = self.questions_repository.get_all()
+
         for question in questions:
-
-            self.show_question(question)
-            self.show_probability()
-            self.show_answers()
-
-            user_input = self.get_user_input()
-
-            self.update_user_question_in_answer(question, user_input)
-            self.update_probability(question, user_input)
+            self.serve_question(question)
 
         self.save_all_user_answers(questions)
 
         self.show_results()
-        # TODO Restart mechanism
+
+    def serve_question(self, question: Question):
+        self.ask_question(question)
+
+        user_input = self.get_user_input()
+
+        self.process_user_input(user_input, question)
+
+    def ask_question(self, question: Question):
+        self.show_question(question)
+        self.show_probability()
+        self.show_answers()
+
+    def process_user_input(self, user_input: int, question: Question):
+        self.update_user_answer_in_question(question, user_input)
+        self.update_probability(question, user_input)
 
     def show_results(self):
         if self.probability_service.total == 1:
@@ -57,9 +65,9 @@ class Survey:
 
     def update_probability(self, question: Question, user_input: int):
         probability = self.map_input_to_probability[user_input]
-        self.probability_service.probability_samples[question.slug] = probability
+        self.probability_service.update_sample(question.slug, probability)
 
-    def update_user_question_in_answer(self, question: Question, user_input: int):
+    def update_user_answer_in_question(self, question: Question, user_input: int):
         question.user_answer = self.map_input_to_answer[user_input]
 
     def calculate_probability(self):

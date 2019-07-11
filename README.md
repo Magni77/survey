@@ -13,12 +13,15 @@ It's also easy extensible for different data sources thanks to repository patter
 
 Questions are also easy editable in /data/questions.csv file
 
+Requirements
+---------------
+`Python >= 3.7`
+
 
 How To Use This
 ---------------
 
-1. Run `pip install -r requirements.txt` to install dependencies
-2. Run `python main.py`
+1. Run `python main.py`
 
 
 Testing

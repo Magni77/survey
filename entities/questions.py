@@ -1,4 +1,10 @@
+import logging
+
+from exceptions import UnexpectedQuestionAnswer
 from settings import Answers
+
+
+logger = logging.getLogger(__name__)
 
 
 class Question:
@@ -30,5 +36,5 @@ class Question:
         try:
             self._expected_answer = map_[new_value]
         except KeyError:
-            # TODO Logger and custom exception
-            raise
+            logger.exception('Unexpected question answer')
+            raise UnexpectedQuestionAnswer('Answers should be one of [T, F, U]')
